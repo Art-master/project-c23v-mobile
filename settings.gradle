@@ -10,3 +10,4 @@ rootProject.name = "c23v"
 include ':app'
 include ':domain'
 include ':data'
+include ':ui-common-resources'
