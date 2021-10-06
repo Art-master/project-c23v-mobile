@@ -24,6 +24,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import com.example.c23v.ui.transform.PhoneNumberVisualTransformation
 import com.example.c23v.ui.theme.ApplicationsTheme
 import kotlinx.coroutines.delay
 
@@ -89,7 +90,8 @@ fun LoginTextField() {
         value = text,
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-        onValueChange = { text = it },
+        onValueChange = { if (it.length <= 10) text = it },
+        visualTransformation = PhoneNumberVisualTransformation(),
         placeholder = { Text(text = stringResource(id = R.string.phone_number)) },
         leadingIcon = {
             Icon(
@@ -156,11 +158,11 @@ fun SuccessButton(
     totalTimeSec: Int
 ) {
 
-    var currentTime by remember {
+    var currentTime by rememberSaveable {
         mutableStateOf(totalTimeSec)
     }
 
-    var progress by remember {
+    var progress by rememberSaveable {
         mutableStateOf(initialValue)
     }
 
