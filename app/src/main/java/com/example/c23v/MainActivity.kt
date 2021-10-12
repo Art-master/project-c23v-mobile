@@ -54,6 +54,7 @@ fun DefaultPreview() {
 fun View() {
     var isTimerEnabled by rememberSaveable { mutableStateOf(false) }
     var needPasswordShow by rememberSaveable { mutableStateOf(false) }
+    var isPhoneValid by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -63,7 +64,7 @@ fun View() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        LoginTextField()
+        LoginTextField { isPhoneValid = isPhoneNumber(it) }
         Spacer(modifier = Modifier.padding(20.dp))
 
         if (needPasswordShow) PasswordTextField()
@@ -72,6 +73,7 @@ fun View() {
 
         SuccessButton(
             isTimerEnabled = isTimerEnabled,
+            isButtonActive = isPhoneValid,
             text = stringResource(id = if (needPasswordShow) R.string.re_send_sms else R.string.send_sms),
             initialValue = 30000F,
             totalTimeSec = 30,
@@ -82,15 +84,24 @@ fun View() {
     }
 }
 
+fun isPhoneNumber(str: String): Boolean {
+    return str.matches("^[0-9]{1,4}[0-9]*\$".toRegex())
+}
+
 @Composable
-fun LoginTextField() {
+fun LoginTextField(onNumberChange: (num: String) -> Unit) {
     var text by rememberSaveable { mutableStateOf("") }
 
     TextField(
         value = text,
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-        onValueChange = { if (it.length <= 10) text = it },
+        onValueChange = {
+            if (successForNumber(it)) {
+                text = it
+                onNumberChange(it)
+            }
+        },
         visualTransformation = PhoneNumberVisualTransformation(),
         placeholder = { Text(text = stringResource(id = R.string.phone_number)) },
         leadingIcon = {
@@ -106,6 +117,14 @@ fun LoginTextField() {
             )
         }
     )
+}
+
+fun successForNumber(str: String): Boolean {
+    if (str.isEmpty()) return true
+
+    val onlyNumbersRegex = "[0-9]+".toRegex()
+    if (str.length <= 10 && str.matches(onlyNumbersRegex)) return true
+    return false
 }
 
 
@@ -152,6 +171,7 @@ fun PasswordTextField() {
 @Composable
 fun SuccessButton(
     isTimerEnabled: Boolean,
+    isButtonActive: Boolean,
     onTimerStateChange: (enabled: Boolean) -> Unit,
     text: String,
     initialValue: Float,
@@ -173,7 +193,7 @@ fun SuccessButton(
     ) {
         Button(
             modifier = Modifier.fillMaxSize(),
-            enabled = isTimerEnabled.not(),
+            enabled = isTimerEnabled.not() && isButtonActive,
             onClick = { onTimerStateChange(true) },
             content = {
                 if (isTimerEnabled) {
