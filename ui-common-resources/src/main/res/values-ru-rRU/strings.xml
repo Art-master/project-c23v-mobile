@@ -5,6 +5,6 @@
     <string name="phone_icon_desc">Введите свой номер телефона</string>
     <string name="phone_description">Введите свой номер телефона. На этот номер телефона будет отправлено смс с паролем для входа</string>
     <string name="enter_you_sms_password">Введите пароль из СМС</string>
-    <string name="send_sms">Отправить СМС</string>
+    <string name="send_sms">Регистрация</string>
     <string name="re_send_sms">Повторно отправить смс</string>
 </resources>

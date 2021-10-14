@@ -3,6 +3,7 @@ package com.example.c23v
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,9 +17,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.focusTarget
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -85,38 +92,56 @@ fun View() {
 }
 
 fun isPhoneNumber(str: String): Boolean {
-    return str.matches("^[0-9]{1,4}[0-9]*\$".toRegex())
+    return str.matches("^[0-9]{3}[0-9]{7}\$".toRegex())
 }
 
 @Composable
 fun LoginTextField(onNumberChange: (num: String) -> Unit) {
     var text by rememberSaveable { mutableStateOf("") }
 
-    TextField(
-        value = text,
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-        onValueChange = {
-            if (successForNumber(it)) {
-                text = it
-                onNumberChange(it)
+    Row(modifier = Modifier.height(50.dp), verticalAlignment = Alignment.CenterVertically) {
+        PhoneCountryCode()
+        TextField(
+            modifier=Modifier.fillMaxHeight(),
+            value = text,
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            onValueChange = {
+                if (successForNumber(it)) {
+                    text = it
+                    onNumberChange(it)
+                }
+            },
+            visualTransformation = PhoneNumberVisualTransformation(),
+            placeholder = { Text(text = stringResource(id = R.string.phone_number)) },
+            trailingIcon = {
+                Icon(
+                    Icons.Filled.Info,
+                    contentDescription = stringResource(id = R.string.phone_description)
+                )
             }
-        },
-        visualTransformation = PhoneNumberVisualTransformation(),
-        placeholder = { Text(text = stringResource(id = R.string.phone_number)) },
-        leadingIcon = {
-            Icon(
-                Icons.Filled.Phone,
-                contentDescription = stringResource(id = R.string.phone_icon_desc)
-            )
-        },
-        trailingIcon = {
-            Icon(
-                Icons.Filled.Info,
-                contentDescription = stringResource(id = R.string.phone_description)
-            )
-        }
-    )
+        )
+    }
+}
+
+@Composable
+fun PhoneCountryCode() {
+    Box(
+        modifier=Modifier.background(Color.LightGray).width(70.dp).fillMaxHeight(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            textAlign = TextAlign.Center,
+            fontSize = 22.sp,
+            color= Color.Gray,
+            text = "+7"
+        )
+        Text(
+            textAlign = TextAlign.Center,
+            fontSize = 20.sp,
+            text = "+7"
+        )
+    }
 }
 
 fun successForNumber(str: String): Boolean {

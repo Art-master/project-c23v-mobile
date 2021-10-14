@@ -4,6 +4,6 @@
     <string name="phone_icon_desc">Enter you phone number</string>
     <string name="phone_description">Enter you phone number. On this number will be send message with password</string>
     <string name="enter_you_sms_password">Enter the password from the SMS</string>
-    <string name="send_sms">Send SMS</string>
+    <string name="send_sms">Register</string>
     <string name="re_send_sms">Re-send sms</string>
 </resources>
