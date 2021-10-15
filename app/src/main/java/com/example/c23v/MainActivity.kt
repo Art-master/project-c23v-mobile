@@ -7,25 +7,20 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.focus.focusTarget
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -62,6 +57,7 @@ fun View() {
     var isTimerEnabled by rememberSaveable { mutableStateOf(false) }
     var needPasswordShow by rememberSaveable { mutableStateOf(false) }
     var isPhoneValid by rememberSaveable { mutableStateOf(false) }
+    var lastPhone by rememberSaveable { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -71,7 +67,11 @@ fun View() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        LoginTextField { isPhoneValid = isPhoneNumber(it) }
+        LoginTextField(enabled = isTimerEnabled.not()) {
+            isPhoneValid = isPhoneNumber(it)
+            if (needPasswordShow && lastPhone != it) needPasswordShow = false
+            lastPhone = it
+        }
         Spacer(modifier = Modifier.padding(20.dp))
 
         if (needPasswordShow) PasswordTextField()
@@ -96,18 +96,25 @@ fun isPhoneNumber(str: String): Boolean {
 }
 
 @Composable
-fun LoginTextField(onNumberChange: (num: String) -> Unit) {
+fun LoginTextField(enabled: Boolean, onNumberChange: (num: String) -> Unit) {
     var text by rememberSaveable { mutableStateOf("") }
+
+    val focusManager = LocalFocusManager.current
+    if (enabled.not()) {
+        focusManager.clearFocus()
+    }
 
     Row(modifier = Modifier.height(50.dp), verticalAlignment = Alignment.CenterVertically) {
         PhoneCountryCode()
         TextField(
-            modifier=Modifier.fillMaxHeight(),
+            modifier = Modifier.fillMaxHeight(),
             value = text,
+            enabled = enabled,
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
             onValueChange = {
-                if (successForNumber(it)) {
+                if (successForPhoneNumber(it)) {
                     text = it
                     onNumberChange(it)
                 }
@@ -127,15 +134,12 @@ fun LoginTextField(onNumberChange: (num: String) -> Unit) {
 @Composable
 fun PhoneCountryCode() {
     Box(
-        modifier=Modifier.background(Color.LightGray).width(70.dp).fillMaxHeight(),
+        modifier = Modifier
+            .background(Color.LightGray)
+            .width(70.dp)
+            .fillMaxHeight(),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            textAlign = TextAlign.Center,
-            fontSize = 22.sp,
-            color= Color.Gray,
-            text = "+7"
-        )
         Text(
             textAlign = TextAlign.Center,
             fontSize = 20.sp,
@@ -144,7 +148,7 @@ fun PhoneCountryCode() {
     }
 }
 
-fun successForNumber(str: String): Boolean {
+fun successForPhoneNumber(str: String): Boolean {
     if (str.isEmpty()) return true
 
     val onlyNumbersRegex = "[0-9]+".toRegex()
