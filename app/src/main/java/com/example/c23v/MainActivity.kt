@@ -104,8 +104,7 @@ fun LoginTextField(enabled: Boolean, onNumberChange: (num: String) -> Unit) {
         focusManager.clearFocus()
     }
 
-    Row(modifier = Modifier.height(50.dp), verticalAlignment = Alignment.CenterVertically) {
-        PhoneCountryCode()
+    Row(modifier = Modifier.height(50.dp).padding(horizontal = 50.dp), verticalAlignment = Alignment.CenterVertically) {
         TextField(
             modifier = Modifier.fillMaxHeight(),
             value = text,
@@ -119,7 +118,7 @@ fun LoginTextField(enabled: Boolean, onNumberChange: (num: String) -> Unit) {
                     onNumberChange(it)
                 }
             },
-            visualTransformation = PhoneNumberVisualTransformation(),
+            visualTransformation = PhoneNumberVisualTransformation("+7"),
             placeholder = { Text(text = stringResource(id = R.string.phone_number)) },
             trailingIcon = {
                 Icon(
@@ -127,23 +126,6 @@ fun LoginTextField(enabled: Boolean, onNumberChange: (num: String) -> Unit) {
                     contentDescription = stringResource(id = R.string.phone_description)
                 )
             }
-        )
-    }
-}
-
-@Composable
-fun PhoneCountryCode() {
-    Box(
-        modifier = Modifier
-            .background(Color.LightGray)
-            .width(70.dp)
-            .fillMaxHeight(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            textAlign = TextAlign.Center,
-            fontSize = 20.sp,
-            text = "+7"
         )
     }
 }
