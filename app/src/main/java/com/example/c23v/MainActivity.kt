@@ -23,11 +23,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.c23v.ui.transform.PhoneNumberVisualTransformation
 import com.example.c23v.ui.theme.ApplicationsTheme
+import com.example.c23v.ui.transform.SmsPasswordVisualTransformation
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
@@ -165,6 +167,7 @@ fun PasswordTextField() {
             onValueChange = {
                 if (it.length <= maxPasswordLength) text = it
             },
+            visualTransformation = SmsPasswordVisualTransformation(),
             placeholder = {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
