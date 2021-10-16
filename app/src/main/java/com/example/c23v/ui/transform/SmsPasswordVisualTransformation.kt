@@ -1,9 +1,12 @@
 package com.example.c23v.ui.transform
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.withStyle
 
 /**
  * Transform fields string to a sms number password
@@ -36,16 +39,27 @@ class SmsPasswordVisualTransformation : VisualTransformation {
             }
 
             override fun transformedToOriginal(offset: Int): Int {
-                return when {
-                    else -> offset
-                }
-
+                return offset
             }
 
         }
 
+        fun buildAnnotatedString(text: String): AnnotatedString {
+            val builder = AnnotatedString.Builder()
+            for (ch in text) {
+                if (ch == '_') {
+                    builder.withStyle(style = SpanStyle(color = Color.Gray)) {
+                        append(ch)
+                    }
+                } else builder.append(ch)
+            }
+
+
+            return builder.toAnnotatedString()
+        }
+
         return TransformedText(
-            AnnotatedString(output),
+            buildAnnotatedString(output),
             phoneNumberTranslator
         )
 
