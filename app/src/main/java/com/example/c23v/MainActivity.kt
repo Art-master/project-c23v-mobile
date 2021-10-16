@@ -3,15 +3,15 @@ package com.example.c23v
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -23,7 +23,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
@@ -59,7 +58,7 @@ fun View() {
     var isTimerEnabled by rememberSaveable { mutableStateOf(false) }
     var needPasswordShow by rememberSaveable { mutableStateOf(false) }
     var isPhoneValid by rememberSaveable { mutableStateOf(false) }
-    var lastPhone by rememberSaveable { mutableStateOf("") }
+    var lastPhoneValue by rememberSaveable { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -69,10 +68,14 @@ fun View() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        LoginTextField(enabled = isTimerEnabled.not()) {
+        LoginTextField(enabled = isTimerEnabled.not(), isLoginValid = isPhoneValid,
+            onSetLoginEditable = {
+                needPasswordShow = false
+                isTimerEnabled = false
+            }) {
             isPhoneValid = isPhoneNumber(it)
-            if (needPasswordShow && lastPhone != it) needPasswordShow = false
-            lastPhone = it
+            if (needPasswordShow && lastPhoneValue != it) needPasswordShow = false
+            lastPhoneValue = it
         }
         Spacer(modifier = Modifier.padding(20.dp))
 
@@ -98,7 +101,12 @@ fun isPhoneNumber(str: String): Boolean {
 }
 
 @Composable
-fun LoginTextField(enabled: Boolean, onNumberChange: (num: String) -> Unit) {
+fun LoginTextField(
+    enabled: Boolean, isLoginValid: Boolean,
+    onSetLoginEditable: (editable: Boolean) -> Unit,
+    onNumberChange: (num: String) -> Unit
+) {
+
     var text by rememberSaveable { mutableStateOf("") }
 
     val focusManager = LocalFocusManager.current
@@ -106,11 +114,17 @@ fun LoginTextField(enabled: Boolean, onNumberChange: (num: String) -> Unit) {
         focusManager.clearFocus()
     }
 
-    Row(modifier = Modifier.height(50.dp).padding(horizontal = 50.dp), verticalAlignment = Alignment.CenterVertically) {
-        TextField(
+    Row(
+        modifier = Modifier
+            .height(50.dp)
+            .padding(horizontal = 50.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        OutlinedTextField(
             modifier = Modifier.fillMaxHeight(),
             value = text,
             enabled = enabled,
+            isError = text.isNotEmpty() && isLoginValid.not(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
@@ -123,10 +137,13 @@ fun LoginTextField(enabled: Boolean, onNumberChange: (num: String) -> Unit) {
             visualTransformation = PhoneNumberVisualTransformation("+7"),
             placeholder = { Text(text = stringResource(id = R.string.phone_number)) },
             trailingIcon = {
-                Icon(
-                    Icons.Filled.Info,
-                    contentDescription = stringResource(id = R.string.phone_description)
-                )
+                if (enabled.not()) {
+                    Icon(
+                        modifier = Modifier.clickable { onSetLoginEditable(true) },
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = stringResource(id = R.string.phone_description)
+                    )
+                }
             }
         )
     }
@@ -167,17 +184,7 @@ fun PasswordTextField() {
             onValueChange = {
                 if (it.length <= maxPasswordLength) text = it
             },
-            visualTransformation = SmsPasswordVisualTransformation(),
-            placeholder = {
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = "_ _ _ _",
-                    style = TextStyle(
-                        fontSize = 25.sp,
-                        textAlign = TextAlign.Center
-                    )
-                )
-            },
+            visualTransformation = SmsPasswordVisualTransformation()
         )
     }
 }
@@ -198,6 +205,17 @@ fun SuccessButton(
 
     var progress by rememberSaveable {
         mutableStateOf(initialValue)
+    }
+
+    fun resetTimer() {
+        onTimerStateChange(false)
+        progress = initialValue
+        currentTime = totalTimeSec
+    }
+
+    if (isTimerEnabled.not() && progress != initialValue) {
+        progress = initialValue
+        currentTime = totalTimeSec
     }
 
     Box(
@@ -227,11 +245,7 @@ fun SuccessButton(
                 delay(1000L)
                 currentTime -= 1
                 progress = currentTime / totalTimeSec.toFloat()
-                if (progress <= 0) {
-                    onTimerStateChange(false)
-                    progress = initialValue
-                    currentTime = totalTimeSec
-                }
+                if (progress <= 0) resetTimer()
             }
         }
     }
