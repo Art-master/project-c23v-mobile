@@ -1,4 +1,4 @@
-package com.example.c23v.ui.transform
+package com.c23v.ui.transform
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString

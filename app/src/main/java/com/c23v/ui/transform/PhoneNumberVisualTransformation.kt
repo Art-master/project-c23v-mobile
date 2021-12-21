@@ -1,4 +1,4 @@
-package com.example.c23v.ui.transform
+package com.c23v.ui.transform
 
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle

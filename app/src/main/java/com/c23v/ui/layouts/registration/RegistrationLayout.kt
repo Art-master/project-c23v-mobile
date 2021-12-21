@@ -1,8 +1,5 @@
-package com.example.c23v
+package com.c23v.ui.layouts.registration
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,37 +23,25 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
-import com.example.c23v.ui.transform.PhoneNumberVisualTransformation
-import com.example.c23v.ui.theme.ApplicationsTheme
-import com.example.c23v.ui.transform.SmsPasswordVisualTransformation
+import com.c23v.R
+import com.c23v.ui.transform.PhoneNumberVisualTransformation
+import com.c23v.ui.theme.ApplicationsTheme
+import com.c23v.ui.transform.SmsPasswordVisualTransformation
 import kotlinx.coroutines.delay
-
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            ApplicationsTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(color = MaterialTheme.colors.background) {
-                    View()
-                }
-            }
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
     ApplicationsTheme {
-        View()
+        RegistrationLayout()
     }
 }
 
 @Composable
-fun View() {
-    var isTimerEnabled by rememberSaveable { mutableStateOf(false) }
-    var needPasswordShow by rememberSaveable { mutableStateOf(false) }
+fun RegistrationLayout() {
+    var sendSmsButtonClicked by rememberSaveable { mutableStateOf(false) }
+    var callButtonClicked by rememberSaveable { mutableStateOf(false) }
+    var needSmsPasswordFieldShow by rememberSaveable { mutableStateOf(false) }
     var isPhoneValid by rememberSaveable { mutableStateOf(false) }
     var lastPhoneValue by rememberSaveable { mutableStateOf("") }
 
@@ -68,30 +53,44 @@ fun View() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        LoginTextField(enabled = isTimerEnabled.not(), isLoginValid = isPhoneValid,
+        LoginTextField(
+            enabled = sendSmsButtonClicked.not() && callButtonClicked.not(),
+            isLoginValid = isPhoneValid,
             onSetLoginEditable = {
-                needPasswordShow = false
-                isTimerEnabled = false
+                needSmsPasswordFieldShow = false
+                sendSmsButtonClicked = false
+                callButtonClicked = false
             }) {
             isPhoneValid = isPhoneNumber(it)
-            if (needPasswordShow && lastPhoneValue != it) needPasswordShow = false
+            if (needSmsPasswordFieldShow && lastPhoneValue != it) {
+                needSmsPasswordFieldShow = false
+            }
             lastPhoneValue = it
         }
         Spacer(modifier = Modifier.padding(20.dp))
 
-        if (needPasswordShow) PasswordTextField()
+        if (needSmsPasswordFieldShow) PasswordTextField()
 
         Spacer(modifier = Modifier.padding(20.dp))
 
         SuccessButton(
-            isTimerEnabled = isTimerEnabled,
-            isButtonActive = isPhoneValid,
-            text = stringResource(id = if (needPasswordShow) R.string.re_send_sms else R.string.send_sms),
+            isTimerEnabled = sendSmsButtonClicked,
+            isButtonActive = false, //NOTE in future can be isPhoneValid && actionRan.not()
+            text = stringResource(id = if (needSmsPasswordFieldShow) R.string.re_send_sms else R.string.send_sms),
             initialValue = 30000F,
             totalTimeSec = 30,
             onTimerStateChange = {
-                isTimerEnabled = it
-                needPasswordShow = true
+                sendSmsButtonClicked = it
+                needSmsPasswordFieldShow = true
+            })
+
+        Spacer(modifier = Modifier.padding(10.dp))
+
+        PhoneCallButton(
+            isButtonActive = isPhoneValid && callButtonClicked.not(),
+            isShowLoading = callButtonClicked,
+            requestPhoneNumber = {
+                callButtonClicked = true
             })
     }
 }
@@ -247,6 +246,34 @@ fun SuccessButton(
                 progress = currentTime / totalTimeSec.toFloat()
                 if (progress <= 0) resetTimer()
             }
+        }
+    }
+}
+
+@Composable
+fun PhoneCallButton(
+    isButtonActive: Boolean,
+    isShowLoading: Boolean,
+    requestPhoneNumber: () -> Unit
+) {
+
+    Box(
+        modifier = Modifier
+            .width(200.dp)
+            .height(50.dp),
+        contentAlignment = Alignment.Center
+
+    ) {
+        Button(
+            modifier = Modifier.fillMaxSize(),
+            enabled = isButtonActive,
+            onClick = { requestPhoneNumber() },
+            content = {
+                Text(stringResource(R.string.call_on_phone))
+            }
+        )
+        if (isShowLoading) {
+            CircularProgressIndicator(modifier = Modifier.alpha(0.3f))
         }
     }
 }

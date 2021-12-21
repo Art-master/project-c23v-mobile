@@ -5,6 +5,7 @@
     <string name="phone_icon_desc">Enter you phone number</string>
     <string name="phone_description">Enter your phone number. An SMS with a login password will be sent to this phone number</string>
     <string name="enter_you_sms_password">Enter the password from the SMS</string>
-    <string name="send_sms">Register</string>
+    <string name="send_sms">Send sms</string>
     <string name="re_send_sms">Re-send sms</string>
+    <string name="call_on_phone">Call a number</string>
 </resources>

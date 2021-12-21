@@ -1,4 +1,4 @@
-package com.example.c23v
+package com.c23v
 
 import org.junit.Test
 

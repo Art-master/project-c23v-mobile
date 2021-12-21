@@ -1,4 +1,4 @@
-package com.example.c23v.ui.theme
+package com.c23v.ui.theme
 
 import androidx.compose.material.Typography
 import androidx.compose.ui.text.TextStyle
