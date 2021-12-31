@@ -2,14 +2,14 @@
 buildscript {
     ext {
         ext.buildConfig = [
-                'compileSdk': 31,
+                'compileSdk': 32,
                 'minSdk'    : 21, // https://issuetracker.google.com/issues/194289155
-                'targetSdk' : 31,
+                'targetSdk' : 32,
         ]
         compose_version = '1.0.5'
         room_version = '2.4.0'
         kotlin_version = '1.5.31'
-        gradle_version = '7.0.2'
+        gradle_version = '7.0.4'
         dagger_version = '2.35.1'
         dagger_hilt_version = '2.40.5'
     }

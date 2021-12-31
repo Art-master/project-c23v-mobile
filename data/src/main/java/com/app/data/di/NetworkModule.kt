@@ -5,12 +5,11 @@ import com.app.data.network.services.AuthorizationNetworkService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ActivityComponent
-import dagger.hilt.android.scopes.ActivityScoped
+import dagger.hilt.android.components.ViewModelComponent
 import retrofit2.Retrofit
 
 @Module
-@InstallIn(ActivityComponent::class)
+@InstallIn(ViewModelComponent::class)
 class NetworkModule {
 
     @Provides
@@ -18,7 +17,6 @@ class NetworkModule {
         return RetrofitBuilder().createConnection()
     }
 
-    @ActivityScoped
     @Provides
     fun provideAuthorizationService(retrofit: Retrofit): AuthorizationNetworkService {
         return retrofit.create(AuthorizationNetworkService::class.java)

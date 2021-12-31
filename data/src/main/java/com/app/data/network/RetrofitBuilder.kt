@@ -3,6 +3,7 @@ package com.app.data.network
 import com.app.data.BuildConfig
 import com.app.data.configs.Config
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
@@ -20,7 +21,7 @@ class RetrofitBuilder @Inject constructor() {
     fun createConnection(): Retrofit {
         return Retrofit.Builder()
             .baseUrl(Config.Network.BASE_URL)
-            //.client(buildHttpClient())
+            .client(buildHttpClient())
             //.addCallAdapterFactory(getRxAdapterFactory())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -35,7 +36,9 @@ class RetrofitBuilder @Inject constructor() {
         //.cache(Interceptors.provideCache())
 
         if (BuildConfig.DEBUG) {
-            //builder.addInterceptor(Interceptors.loggingInterceptor(LOG_TAG))
+            val interceptor = HttpLoggingInterceptor()
+            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
+            builder.addInterceptor(interceptor)
         }
 
         return builder.build()
