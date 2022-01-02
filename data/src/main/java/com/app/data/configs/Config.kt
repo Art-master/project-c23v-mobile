@@ -2,7 +2,7 @@ package com.app.data.configs
 
 object Config {
     object Network {
-        const val BASE_URL = "http://192.168.0.100:8089" //192.168.0.100
+        const val BASE_URL = "http://192.168.0.100:8089"
 
     }
 

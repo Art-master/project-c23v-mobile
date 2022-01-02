@@ -2,6 +2,7 @@ package com.app.data.network
 
 import com.app.data.BuildConfig
 import com.app.data.configs.Config
+import com.localebro.okhttpprofiler.OkHttpProfilerInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -38,6 +39,7 @@ class RetrofitBuilder @Inject constructor() {
         if (BuildConfig.DEBUG) {
             val interceptor = HttpLoggingInterceptor()
             interceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
+            builder.addInterceptor(OkHttpProfilerInterceptor())
             builder.addInterceptor(interceptor)
         }
 

@@ -23,22 +23,24 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.c23v.R
 import com.c23v.ui.transform.PhoneNumberVisualTransformation
 import com.c23v.ui.theme.ApplicationsTheme
 import com.c23v.ui.transform.SmsPasswordVisualTransformation
+import com.c23v.view_models.LoginViewModel
 import kotlinx.coroutines.delay
 
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
     ApplicationsTheme {
-        RegistrationLayout()
+        //RegistrationLayout()
     }
 }
 
 @Composable
-fun RegistrationLayout() {
+fun RegistrationLayout(loginViewModel: LoginViewModel = viewModel()) {
     var sendSmsButtonClicked by rememberSaveable { mutableStateOf(false) }
     var callButtonClicked by rememberSaveable { mutableStateOf(false) }
     var needSmsPasswordFieldShow by rememberSaveable { mutableStateOf(false) }
@@ -91,6 +93,8 @@ fun RegistrationLayout() {
             isShowLoading = callButtonClicked,
             requestPhoneNumber = {
                 callButtonClicked = true
+                val confirmationNumber = loginViewModel.getConfirmationNumber("")
+                val data = confirmationNumber.value
             })
     }
 }

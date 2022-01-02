@@ -24,7 +24,7 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun fetchConfirmationNumber(phoneNumber: String) {
-        authorizationService.getConfirmationNumber(phoneNumber)
+        authorizationService.getConfirmationNumber(phoneNumber)!!.execute()
     }
 
     operator fun getValue(mainActivity: MainActivity, property: KProperty<*>): Any {
