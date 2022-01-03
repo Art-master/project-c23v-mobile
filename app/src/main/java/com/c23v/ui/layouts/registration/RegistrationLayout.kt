@@ -3,12 +3,17 @@ package com.c23v.ui.layouts.registration
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.outlined.Cancel
+import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -16,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -28,6 +34,7 @@ import com.c23v.R
 import com.c23v.ui.transform.PhoneNumberVisualTransformation
 import com.c23v.ui.theme.ApplicationsTheme
 import com.c23v.ui.transform.SmsPasswordVisualTransformation
+import com.c23v.view_models.LoadingState
 import com.c23v.view_models.LoginViewModel
 import kotlinx.coroutines.delay
 
@@ -35,7 +42,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun DefaultPreview() {
     ApplicationsTheme {
-        //RegistrationLayout()
+        RegistrationLayout()
     }
 }
 
@@ -93,9 +100,95 @@ fun RegistrationLayout(loginViewModel: LoginViewModel = viewModel()) {
             isShowLoading = callButtonClicked,
             requestPhoneNumber = {
                 callButtonClicked = true
-                val confirmationNumber = loginViewModel.getConfirmationNumber("")
-                val data = confirmationNumber.value
+                loginViewModel.setLoadingState(LoadingState.Loading)
+                loginViewModel.fetchConfirmationNumber("+79169057104")
             })
+
+        if (callButtonClicked) {
+            PhoneConfirmationAlertDialog(loginViewModel) {
+                needSmsPasswordFieldShow = false
+                sendSmsButtonClicked = false
+                callButtonClicked = false
+            }
+        }
+    }
+}
+
+@Composable
+fun PhoneConfirmationAlertDialog(model: LoginViewModel, onRequest: (Boolean) -> Unit) {
+
+    val openDialog = remember { mutableStateOf(true) }
+    val phoneNumber = model.phoneNumber.value
+
+    if (openDialog.value) {
+        AlertDialog(
+            onDismissRequest = {
+                openDialog.value = false
+                onRequest.invoke(false)
+            },
+            title = { Text("Phone confirmation") },
+            text = {
+                when {
+                    model.getLoadingState() is LoadingState.Loading -> {
+                        CircularProgressIndicator(modifier = Modifier.alpha(0.3f))
+                    }
+                    model.getLoadingState() is LoadingState.Error -> {
+                        Text(
+                            text = "Error: ${model.getLoadingState().message}",
+                            color = MaterialTheme.colors.error
+                        )
+                    }
+                    else -> {
+                        Text("Phone confirmation $phoneNumber")
+                    }
+                }
+            },
+            buttons = {
+                Row(
+                    modifier = Modifier.padding(all = 8.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Button(
+                        modifier = Modifier.fillMaxWidth(0.4f),
+                        shape = CircleShape,
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = MaterialTheme.colors.error,
+                            contentColor = Color.White
+                        ),
+                        onClick = {
+                            openDialog.value = false
+                            onRequest.invoke(false)
+                        }
+
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Clear,
+                            contentDescription = stringResource(id = R.string.phone_description)
+                        )
+                    }
+                    Spacer(modifier = Modifier.padding(10.dp))
+                    Button(
+                        modifier = Modifier.fillMaxWidth(1f),
+                        enabled = phoneNumber.isEmpty().not(),
+                        shape = CircleShape,
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = Color.Green,
+                            contentColor = Color.White
+                        ),
+                        onClick = {
+                            openDialog.value = false
+                            onRequest.invoke(true)
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Call,
+                            contentDescription = stringResource(id = R.string.phone_description)
+                        )
+                    }
+                }
+            },
+
+            )
     }
 }
 

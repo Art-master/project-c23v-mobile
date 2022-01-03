@@ -11,3 +11,6 @@ val Cian500 = Color(0xFF00BCD4)
 
 val Brown50 = Color(0xFFEFEBE9)
 val Gray700 = Color(0xFF616161)
+
+val Error = Color(0xFFD32F2F)
+val ErrorInactive = Color(0XFFFFCDD2)

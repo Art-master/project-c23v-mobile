@@ -10,6 +10,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.google.gson.GsonBuilder
 
 @Singleton
 class RetrofitBuilder @Inject constructor() {
@@ -20,11 +21,15 @@ class RetrofitBuilder @Inject constructor() {
     private val connectTimeout = 5L to TimeUnit.SECONDS
 
     fun createConnection(): Retrofit {
+        val gson = GsonBuilder()
+            .setLenient()
+            .create()
+
         return Retrofit.Builder()
             .baseUrl(Config.Network.BASE_URL)
             .client(buildHttpClient())
             //.addCallAdapterFactory(getRxAdapterFactory())
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }
 

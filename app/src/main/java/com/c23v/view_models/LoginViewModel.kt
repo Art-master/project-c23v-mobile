@@ -1,33 +1,44 @@
 package com.c23v.view_models
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.*
 import com.app.data.network.services.AuthorizationNetworkService
-import com.c23v.MainActivity
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
+import java.net.SocketTimeoutException
 import javax.inject.Inject
-import kotlin.reflect.KProperty
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authorizationService: AuthorizationNetworkService) : ViewModel() {
+    private val authorizationService: AuthorizationNetworkService
+) : ViewModel() {
 
-    private val getConfirmationNumber: MutableLiveData<String> by lazy {
-        MutableLiveData<String>().also {
-            fetchConfirmationNumber("+79169057104")
+    private var loadingState: MutableState<LoadingState> = mutableStateOf(LoadingState.Loading)
+
+    var phoneNumber = mutableStateOf("")
+        private set
+
+    fun fetchConfirmationNumber(phone: String) {
+        viewModelScope.launch {
+            try {
+                val data = authorizationService.getConfirmationNumber(phone)
+                phoneNumber.value = data.body()!!
+
+            } catch (e: SocketTimeoutException) {
+                loadingState.value = LoadingState.Error
+                loadingState.value.message = e.message!!
+                phoneNumber.value = ""
+            }
         }
     }
 
-    fun getConfirmationNumber(phone: String): LiveData<String> {
-        return getConfirmationNumber
+    fun getLoadingState(): LoadingState {
+        return loadingState.value
     }
 
-    private fun fetchConfirmationNumber(phoneNumber: String) {
-        authorizationService.getConfirmationNumber(phoneNumber)!!.execute()
+    fun setLoadingState(state: LoadingState) {
+        loadingState.value = state
     }
 
-    operator fun getValue(mainActivity: MainActivity, property: KProperty<*>): Any {
-        TODO("Not yet implemented")
-    }
 }
