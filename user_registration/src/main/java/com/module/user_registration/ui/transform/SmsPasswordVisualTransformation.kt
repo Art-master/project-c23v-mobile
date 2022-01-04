@@ -1,4 +1,4 @@
-package com.c23v.ui.transform
+package com.module.user_registration.ui.transform
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString

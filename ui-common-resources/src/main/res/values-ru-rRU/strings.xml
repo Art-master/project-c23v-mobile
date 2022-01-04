@@ -8,4 +8,7 @@
     <string name="send_sms">Отправить смс</string>
     <string name="re_send_sms">Повторить отправку</string>
     <string name="call_on_phone">Позвонить</string>
+    <string name="phone_confirmation">Подтверждение номера телефона</string>
+    <string name="confirmation_alert_dialog_text">Для подтверждения номера телефона будет совершенно бесплатный звонок на номер %1$s</string>
+    <string name="error">Ошибка</string>
 </resources>

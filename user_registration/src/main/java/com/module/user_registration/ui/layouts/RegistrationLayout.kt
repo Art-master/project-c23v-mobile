@@ -1,5 +1,6 @@
-package com.c23v.ui.layouts.registration
+package com.module.user_registration.ui.layouts
 
+import android.telephony.TelephonyManager
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,9 +11,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -20,34 +19,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.c23v.R
-import com.c23v.ui.transform.PhoneNumberVisualTransformation
-import com.c23v.ui.theme.ApplicationsTheme
-import com.c23v.ui.transform.SmsPasswordVisualTransformation
-import com.c23v.view_models.LoadingState
-import com.c23v.view_models.LoginViewModel
+import com.module.user_registration.ui.transform.PhoneNumberVisualTransformation
+import com.module.user_registration.ui.transform.SmsPasswordVisualTransformation
+import com.module.user_registration.ui.view_models.LoadingState
+import com.module.user_registration.ui.view_models.AuthViewModel
+import com.module.user_registration.R
+import com.module.user_registration.managers.TelephonyManagerWrapper
 import kotlinx.coroutines.delay
 
-@Preview(showBackground = true)
 @Composable
-fun DefaultPreview() {
-    ApplicationsTheme {
-        RegistrationLayout()
-    }
-}
-
-@Composable
-fun RegistrationLayout(loginViewModel: LoginViewModel = viewModel()) {
+fun RegistrationLayout(authViewModel: AuthViewModel = viewModel()) {
     var sendSmsButtonClicked by rememberSaveable { mutableStateOf(false) }
     var callButtonClicked by rememberSaveable { mutableStateOf(false) }
     var needSmsPasswordFieldShow by rememberSaveable { mutableStateOf(false) }
@@ -100,12 +90,12 @@ fun RegistrationLayout(loginViewModel: LoginViewModel = viewModel()) {
             isShowLoading = callButtonClicked,
             requestPhoneNumber = {
                 callButtonClicked = true
-                loginViewModel.setLoadingState(LoadingState.Loading)
-                loginViewModel.fetchConfirmationNumber("+79169057104")
+                authViewModel.setLoadingState(LoadingState.Loading)
+                authViewModel.fetchConfirmationNumber("+79169057104")
             })
 
         if (callButtonClicked) {
-            PhoneConfirmationAlertDialog(loginViewModel) {
+            PhoneConfirmationAlertDialog(authViewModel) {
                 needSmsPasswordFieldShow = false
                 sendSmsButtonClicked = false
                 callButtonClicked = false
@@ -115,10 +105,12 @@ fun RegistrationLayout(loginViewModel: LoginViewModel = viewModel()) {
 }
 
 @Composable
-fun PhoneConfirmationAlertDialog(model: LoginViewModel, onRequest: (Boolean) -> Unit) {
+fun PhoneConfirmationAlertDialog(model: AuthViewModel, onRequest: (Boolean) -> Unit) {
 
     val openDialog = remember { mutableStateOf(true) }
-    val phoneNumber = model.phoneNumber.value
+    val phoneNumber = model.getPhoneNumber()
+    val context = LocalContext.current
+    val prevCallState = remember { mutableStateOf(-1) }
 
     if (openDialog.value) {
         AlertDialog(
@@ -126,21 +118,20 @@ fun PhoneConfirmationAlertDialog(model: LoginViewModel, onRequest: (Boolean) -> 
                 openDialog.value = false
                 onRequest.invoke(false)
             },
-            title = { Text("Phone confirmation") },
+            title = { Text(stringResource(R.string.phone_confirmation)) },
             text = {
                 when {
                     model.getLoadingState() is LoadingState.Loading -> {
                         CircularProgressIndicator(modifier = Modifier.alpha(0.3f))
                     }
                     model.getLoadingState() is LoadingState.Error -> {
+                        val error = (model.getLoadingState() as LoadingState.Error).message
                         Text(
-                            text = "Error: ${model.getLoadingState().message}",
+                            text = "${stringResource(id = R.string.error)}: $error",
                             color = MaterialTheme.colors.error
                         )
                     }
-                    else -> {
-                        Text("Phone confirmation $phoneNumber")
-                    }
+                    else -> Text(stringResource(R.string.phone_confirmation, phoneNumber))
                 }
             },
             buttons = {
@@ -149,7 +140,7 @@ fun PhoneConfirmationAlertDialog(model: LoginViewModel, onRequest: (Boolean) -> 
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Button(
-                        modifier = Modifier.fillMaxWidth(0.4f),
+                        modifier = Modifier.fillMaxWidth(0.5f),
                         shape = CircleShape,
                         colors = ButtonDefaults.buttonColors(
                             backgroundColor = MaterialTheme.colors.error,
@@ -157,6 +148,7 @@ fun PhoneConfirmationAlertDialog(model: LoginViewModel, onRequest: (Boolean) -> 
                         ),
                         onClick = {
                             openDialog.value = false
+                            model.clearPhoneNumber()
                             onRequest.invoke(false)
                         }
 
@@ -177,7 +169,18 @@ fun PhoneConfirmationAlertDialog(model: LoginViewModel, onRequest: (Boolean) -> 
                         ),
                         onClick = {
                             openDialog.value = false
-                            onRequest.invoke(true)
+                            TelephonyManagerWrapper.also { mgr ->
+                                mgr.makeCall(context, phoneNumber = phoneNumber) { state ->
+                                    if (mgr.callEnded(prevCallState.value, state)) {
+                                        onRequest.invoke(true)
+                                        prevCallState.value = -1
+                                        model.checkAuthStatus()
+                                        return@makeCall true
+                                    }
+                                    prevCallState.value = state
+                                    return@makeCall false
+                                }
+                            }
                         }
                     ) {
                         Icon(
@@ -186,11 +189,12 @@ fun PhoneConfirmationAlertDialog(model: LoginViewModel, onRequest: (Boolean) -> 
                         )
                     }
                 }
-            },
+            }
 
-            )
+        )
     }
 }
+
 
 fun isPhoneNumber(str: String): Boolean {
     return str.matches("^[0-9]{3}[0-9]{7}\$".toRegex())

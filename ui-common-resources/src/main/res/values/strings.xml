@@ -7,4 +7,7 @@
     <string name="send_sms">Send sms</string>
     <string name="re_send_sms">Re-send sms</string>
     <string name="call_on_phone">Call a number</string>
+    <string name="phone_confirmation">Phone number confirmation</string>
+    <string name="confirmation_alert_dialog_text">"To confirm the phone number, there will be a completely free call to the number %1$s "</string>
+    <string name="error">Error</string>
 </resources>
